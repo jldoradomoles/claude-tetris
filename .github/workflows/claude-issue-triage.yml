@@ -65,6 +65,12 @@ jobs:
                - Complejidad estimada: baja / media / alta, con una frase de justificación.
                - Preguntas abiertas: información que falta para poder implementarlo.
 
+               El contenido se publicará tal cual como comentario del issue, así que debe estar en un formato
+               Markdown que GitHub (GitHub Flavored Markdown) entienda y renderice correctamente: encabezados con
+               `###`, listas con `-` o `1.`, listas de tareas con `- [ ]` para los criterios de aceptación, código
+               en línea con comillas invertidas y bloques de código con ``` y lenguaje (por ejemplo ```js).
+               No uses HTML ni sintaxis que GitHub no soporte.
+
             No modifiques ningún otro archivo ni intentes comentar o etiquetar el issue: eso lo hace el workflow después.
 
       - name: Aplicar labels
