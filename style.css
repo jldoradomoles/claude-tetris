@@ -233,3 +233,102 @@ kbd {
   font-size: 0.95rem;
   font-weight: 600;
 }
+
+/* ---- Récords ---- */
+.hidden {
+  display: none !important;
+}
+
+#records {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#records-list {
+  list-style: none;
+  counter-reset: rank;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#records-list li {
+  counter-increment: rank;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: var(--text);
+}
+
+#records-list li:not(.empty)::before {
+  content: counter(rank) '.';
+  color: var(--label);
+}
+
+#records-list li span:first-of-type {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#records-list li.highlight,
+#records-list li.highlight::before {
+  background: var(--accent);
+  color: var(--btn-text);
+  font-weight: 700;
+}
+
+#records-list li.empty {
+  color: var(--muted);
+  justify-content: center;
+}
+
+#records-stats {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#name-form {
+  display: flex;
+  gap: 6px;
+}
+
+#name-input {
+  width: 140px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--board-bg);
+  color: var(--text);
+  font-size: 13px;
+  user-select: text;
+}
+
+#name-form button,
+#reset-records-btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#name-form button:hover,
+#reset-records-btn:hover {
+  border-color: var(--accent);
+}
+
+#reset-records-btn {
+  font-size: 11px;
+  color: var(--muted);
+}
