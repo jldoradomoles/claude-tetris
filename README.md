@@ -166,6 +166,10 @@ Cuando una pieza recién generada ya colisiona al aparecer (`spawn`), se dispara
 
 ---
 
+## Skins
+
+El selector de la esquina superior derecha cambia la apariencia: **Retro** (plano), **Neon** (tablero negro con glow), **Pastel** (colores suaves y bordes redondeados) y **Pixel art** (bloques con textura dither). La elección se guarda en `localStorage` y convive con el tema claro/oscuro.
+
 ## Personalización
 
 Algunos parámetros fáciles de tunear en `game.js`:

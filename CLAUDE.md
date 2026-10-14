@@ -19,6 +19,7 @@ Tres archivos: `index.html` (DOM + canvas), `style.css` (tema oscuro), `game.js`
 - Flujo de una pieza: `loop` (rAF, acumula `dropAccum` contra `dropInterval`) / teclas → `lockPiece()` → `merge()` + `clearLines()` + `spawn()`. `spawn()` llama a `endGame()` si la nueva pieza colisiona.
 - `clearLines()` es quien actualiza puntuación, nivel y `dropInterval` (`max(100, 1000 - (level-1)*90)`); hard drop suma 2 pts/celda y soft drop 1 pt/fila.
 - Pausa y game over cancelan el rAF (`cancelAnimationFrame(animId)`); reanudar reinicia `lastTime` y vuelve a llamar a `loop`.
+- Skins: `SKINS = {retro, neon, pastel, pixel}` (cada una con `colors` de 14 índices, `drawBlock` y `boardBg`). `COLORS` es `let` y `setSkin()` lo reasigna, pone `data-skin` en `<html>` (Neon fuerza `--board-bg` negro en CSS), guarda `localStorage('skin')` y repinta. `drawBlock` delega el cuerpo en la skin activa y dibuja encima iconos de power-ups/comodín.
 - Rotación: `rotateCW` + wall kicks simples en `tryRotate` (desplazamientos horizontales `[0,-1,1,-2,2]`, no SRS).
 
 ## Ojo al cambiar tamaños
