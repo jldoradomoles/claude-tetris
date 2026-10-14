@@ -40,6 +40,11 @@
   --btn-text: #ffffff;
 }
 
+/* Skin Neon: rejilla oscura (el fondo negro del canvas lo pone setSkin) */
+[data-skin="neon"] {
+  --grid: #14141f;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -232,4 +237,27 @@ kbd {
   min-height: 1.4em;
   font-size: 0.95rem;
   font-weight: 600;
+}
+
+/* ---- Selector de skin ---- */
+#skin-select {
+  position: fixed;
+  top: 16px;
+  right: 120px;
+  background: var(--board-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#skin-select:hover {
+  border-color: var(--accent);
+}
+
+#skin-select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

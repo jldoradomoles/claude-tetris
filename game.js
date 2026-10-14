@@ -4,7 +4,7 @@ const COLS = 10;
 const ROWS = 20;
 const BLOCK = 30;
 
-const COLORS = [
+const RETRO_COLORS = [
   null,
   '#4dd0e1', // I - cyan
   '#ffd54f', // O - yellow
@@ -21,6 +21,83 @@ const COLORS = [
   '#9575cd', // 13 - gravedad
   '#4fc3f7', // 14 - congelar
 ];
+
+// Skins: cada una define los 14 colores (índices 1-14), el fondo del tablero y cómo pintar el cuerpo del bloque.
+const SKIN_NAMES = ['retro', 'neon', 'pastel', 'pixel'];
+
+function drawBlockRetro(context, x, y, color, size) {
+  context.fillStyle = color;
+  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+  context.fillStyle = shineColor;
+  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+}
+
+function drawBlockNeon(context, x, y, color, size) {
+  context.save();
+  context.shadowColor = color;
+  context.shadowBlur = size * 0.5;
+  context.fillStyle = color + '55';
+  context.fillRect(x * size + 3, y * size + 3, size - 6, size - 6);
+  context.strokeStyle = color;
+  context.lineWidth = 2;
+  context.strokeRect(x * size + 3, y * size + 3, size - 6, size - 6);
+  context.restore();
+}
+
+function roundedRectPath(context, x, y, w, h, r) {
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.arcTo(x + w, y, x + w, y + h, r);
+  context.arcTo(x + w, y + h, x, y + h, r);
+  context.arcTo(x, y + h, x, y, r);
+  context.arcTo(x, y, x + w, y, r);
+  context.closePath();
+}
+
+function drawBlockPastel(context, x, y, color, size) {
+  roundedRectPath(context, x * size + 2, y * size + 2, size - 4, size - 4, size * 0.3);
+  context.fillStyle = color;
+  context.fill();
+  context.fillStyle = 'rgba(255,255,255,0.35)';
+  roundedRectPath(context, x * size + 5, y * size + 5, size * 0.4, size * 0.18, size * 0.09);
+  context.fill();
+}
+
+function drawBlockPixel(context, x, y, color, size) {
+  const px = x * size, py = y * size;
+  context.fillStyle = color;
+  context.fillRect(px + 1, py + 1, size - 2, size - 2);
+  // dither: tablero de celdas de 3px alternando sombra
+  const t = 3;
+  context.fillStyle = 'rgba(0,0,0,0.2)';
+  for (let i = 0; i < size - 2; i += t)
+    for (let j = 0; j < size - 2; j += t)
+      if (((i / t) + (j / t)) % 2 === 0)
+        context.fillRect(px + 1 + i, py + 1 + j, Math.min(t, size - 2 - i), Math.min(t, size - 2 - j));
+  context.strokeStyle = 'rgba(0,0,0,0.6)';
+  context.lineWidth = 1;
+  context.strokeRect(px + 1.5, py + 1.5, size - 3, size - 3);
+}
+
+const SKINS = {
+  retro: { colors: RETRO_COLORS, drawBlock: drawBlockRetro, boardBg: null },
+  neon: {
+    colors: [null, '#00ffff', '#ffff00', '#ff00ff', '#39ff14', '#ff3131', '#3d7bff', '#ff9100', '#c0c0ff',
+      '#ffffff', '#ff6a00', '#f5ff3d', '#ff4fd8', '#a56bff', '#00d0ff'],
+    drawBlock: drawBlockNeon, boardBg: '#000',
+  },
+  pastel: {
+    colors: [null, '#a8e6ef', '#fff1b8', '#d7b9ec', '#bfe6c1', '#f4b8b8', '#b9d6f2', '#fbd3a6', '#cdb9ae',
+      '#f4f4f4', '#ffb59f', '#fff7b0', '#f7b5cc', '#cdbfee', '#b3e2f7'],
+    drawBlock: drawBlockPastel, boardBg: null,
+  },
+  pixel: {
+    colors: [null, '#29adff', '#ffec27', '#7e2553', '#00e436', '#ff004d', '#1d2b83', '#ffa300', '#83769c',
+      '#c2c3c7', '#ff6c24', '#ffe94e', '#ff77a8', '#8c5bd6', '#5fcde4'],
+    drawBlock: drawBlockPixel, boardBg: null,
+  },
+};
+let COLORS = SKINS.retro.colors;
 
 const PIECES = [
   null,
@@ -66,7 +143,9 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const statusEl = document.getElementById('power-status');
 const themeToggle = document.getElementById('theme-toggle');
+const skinSelect = document.getElementById('skin-select');
 
+let currentSkin = 'retro';
 let gridColor = '#22222e';
 let shineColor = 'rgba(255,255,255,0.12)';
 
@@ -255,21 +334,16 @@ function updateHUD() {
 
 function drawBlock(context, x, y, colorIndex, size, alpha) {
   if (!colorIndex) return;
-  const color = COLORS[colorIndex];
   context.globalAlpha = alpha ?? 1;
-  context.fillStyle = color;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  // highlight
-  context.fillStyle = shineColor;
-  context.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  SKINS[currentSkin].drawBlock(context, x, y, COLORS[colorIndex], size);
   if (POWERS[colorIndex]) {
-    context.fillStyle = '#000';
+    context.fillStyle = currentSkin === 'neon' ? '#fff' : '#000';
     context.font = `${size * 0.6}px sans-serif`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(POWERS[colorIndex].icon, x * size + size / 2, y * size + size / 2 + 1);
   } else if (colorIndex === WILD) {
-    context.fillStyle = '#555';
+    context.fillStyle = currentSkin === 'neon' ? '#fff' : '#555';
     context.font = `bold ${size * 0.6}px sans-serif`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
@@ -459,5 +533,31 @@ themeToggle.addEventListener('click', () => {
 let savedTheme = null;
 try { savedTheme = localStorage.getItem('theme'); } catch (e) {}
 setTheme(savedTheme === 'light' ? 'light' : 'dark');
+
+function setSkin(name) {
+  if (!SKINS[name]) name = 'retro';
+  currentSkin = name;
+  COLORS = SKINS[name].colors;
+  document.documentElement.dataset.skin = name;
+  const styles = getComputedStyle(document.documentElement);
+  gridColor = styles.getPropertyValue('--grid').trim();
+  shineColor = styles.getPropertyValue('--block-shine').trim();
+  skinSelect.value = name;
+  // Neon fuerza fondo negro solo en los canvas (el resto de la UI sigue el tema)
+  canvas.style.background = nextCanvas.style.background = SKINS[name].boardBg || '';
+  try { localStorage.setItem('skin', name); } catch (e) {}
+  if (current) { draw(); drawNext(); }
+}
+
+// las flechas/Espacio del select no deben mover la pieza
+skinSelect.addEventListener('keydown', e => e.stopPropagation());
+skinSelect.addEventListener('change', () => {
+  setSkin(skinSelect.value);
+  skinSelect.blur(); // evita que Espacio vuelva a abrir el select
+});
+
+let savedSkin = null;
+try { savedSkin = localStorage.getItem('skin'); } catch (e) {}
+setSkin(savedSkin);
 
 init();
