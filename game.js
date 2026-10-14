@@ -43,6 +43,8 @@ const CHALLENGE_CHANCE = 0.05;
 const WILD = 9;
 const POWER_EVERY = 5;
 const FREEZE_MS = 5000;
+const MAX_START_LEVEL = 15;
+const RESUME_LOCK_MS = 250; // ignora teclas justo tras reanudar
 const CELL_POINTS = 10;
 const POWERS = {
   10: { name: 'Bomba', icon: '💣' },
@@ -64,6 +66,12 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
+const gameoverBox = document.getElementById('gameover-box');
+const pauseBox = document.getElementById('pause-box');
+const pauseMain = document.getElementById('pause-main');
+const pauseControls = document.getElementById('pause-controls');
+const resumeBtn = document.getElementById('resume-btn');
+const startLevelEl = document.getElementById('start-level');
 const statusEl = document.getElementById('power-status');
 const themeToggle = document.getElementById('theme-toggle');
 
@@ -71,6 +79,8 @@ let gridColor = '#22222e';
 let shineColor = 'rgba(255,255,255,0.12)';
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let startLevel = 1;
+let inputLockUntil = 0;
 let powerAt, powerPending, freezeLeft, toastLeft, toastText;
 
 function createBoard() {
@@ -346,21 +356,40 @@ function endGame() {
   draw(); // pinta el estado final; el último frame no se dibuja al salir del loop
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
+  showOverlay(gameoverBox);
+}
+
+function showOverlay(box) {
+  gameoverBox.classList.toggle('hidden', box !== gameoverBox);
+  pauseBox.classList.toggle('hidden', box !== pauseBox);
   overlay.classList.remove('hidden');
+}
+
+function showPauseView(controls) {
+  pauseMain.classList.toggle('hidden', controls);
+  pauseControls.classList.toggle('hidden', !controls);
+  (controls ? document.getElementById('controls-back-btn') : resumeBtn).focus();
 }
 
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    overlay.classList.add('hidden');
+    if (document.activeElement) document.activeElement.blur(); // Espacio no debe activar un botón
+    inputLockUntil = performance.now() + RESUME_LOCK_MS;
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    showOverlay(pauseBox);
+    showPauseView(false);
   }
+}
+
+function setStartLevel(n) {
+  startLevel = Math.min(MAX_START_LEVEL, Math.max(1, n));
+  startLevelEl.textContent = startLevel;
 }
 
 function loop(ts) {
@@ -390,13 +419,13 @@ function loop(ts) {
 function init() {
   board = createBoard();
   score = 0;
-  lines = 0;
-  level = 1;
+  level = startLevel;
+  lines = (startLevel - 1) * 10; // coherente con level = floor(lines/10) + 1
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = Math.max(100, 1000 - (level - 1) * 90);
   dropAccum = 0;
-  powerAt = POWER_EVERY;
+  powerAt = (Math.floor(lines / POWER_EVERY) + 1) * POWER_EVERY;
   powerPending = false;
   freezeLeft = 0;
   toastLeft = 0;
@@ -411,8 +440,15 @@ function init() {
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP') { togglePause(); return; }
-  if (paused || gameOver) return;
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    if (e.code === 'Escape' && paused && pauseMain.classList.contains('hidden')) {
+      showPauseView(false); // Esc en "Ver controles" vuelve al menú
+    } else if (!e.repeat) {
+      togglePause();
+    }
+    return;
+  }
+  if (paused || gameOver || performance.now() < inputLockUntil) return;
   switch (e.code) {
     case 'ArrowLeft':
       if (!collide(current.shape, current.x - 1, current.y)) current.x--;
@@ -436,6 +472,15 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+resumeBtn.addEventListener('click', togglePause);
+document.getElementById('pause-restart-btn').addEventListener('click', () => {
+  document.activeElement.blur();
+  init();
+});
+document.getElementById('controls-btn').addEventListener('click', () => showPauseView(true));
+document.getElementById('controls-back-btn').addEventListener('click', () => showPauseView(false));
+document.getElementById('level-down').addEventListener('click', () => setStartLevel(startLevel - 1));
+document.getElementById('level-up').addEventListener('click', () => setStartLevel(startLevel + 1));
 
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
