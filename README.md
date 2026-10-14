@@ -44,6 +44,7 @@ Es una versión jugable del Tetris clásico con todas las mecánicas que esperar
 - **Sistema de puntuación** clásico de Tetris (100 / 300 / 500 / 800 multiplicado por nivel).
 - **Niveles** que aumentan cada 10 líneas y aceleran la caída.
 - **Pausa** y **Game Over** con opción de reinicio.
+- **Tabla de récords local**: pantalla de inicio con el top 5 (nombre de hasta 12 caracteres), mejor combo y máximo de líneas en una partida, guardados en `localStorage` (clave `tetris-records`). Botón «Borrar récords».
 
 ---
 

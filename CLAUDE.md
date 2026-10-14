@@ -21,6 +21,8 @@ Tres archivos: `index.html` (DOM + canvas), `style.css` (tema oscuro), `game.js`
 - Pausa y game over cancelan el rAF (`cancelAnimationFrame(animId)`); reanudar reinicia `lastTime` y vuelve a llamar a `loop`.
 - Rotación: `rotateCW` + wall kicks simples en `tryRotate` (desplazamientos horizontales `[0,-1,1,-2,2]`, no SRS).
 
+- Récords: `#start-screen` (tabla + Jugar) se muestra al cargar; `init()` ya no se llama al cargar sino desde Jugar y Reiniciar. Se persisten en `localStorage['tetris-records']` (`{scores:[{name,score,lines,level,date}], bestCombo, maxLines}`, top 5, siempre en `try/catch`). `endGame()` llama a `showGameOverRecords()`. `combo`/`comboMax` los gestiona `clearLines()`. El `keydown` global ignora eventos de un `<input>` y mientras `started` sea false.
+
 ## Ojo al cambiar tamaños
 
 `COLS`, `ROWS` y `BLOCK` en `game.js` deben coincidir con `width`/`height` de `<canvas id="board">` en `index.html` (`COLS*BLOCK` × `ROWS*BLOCK`). El canvas de vista previa (`#next-canvas`, 120×120) asume una rejilla de 4×4 con bloques de 30 px (`drawNext`).
