@@ -18,6 +18,7 @@ Tres archivos: `index.html` (DOM + canvas), `style.css` (tema oscuro), `game.js`
 - `board` es una matriz `ROWS × COLS` con `0` (vacío) o un índice 1–8 (8 = torre 3×3 hueca, que sale con `CHALLENGE_CHANCE`) que indexa a la vez `COLORS` y `PIECES`. Los valores dentro de cada matriz de `PIECES` son su propio índice de color.
 - Flujo de una pieza: `loop` (rAF, acumula `dropAccum` contra `dropInterval`) / teclas → `lockPiece()` → `merge()` + `clearLines()` + `spawn()`. `spawn()` llama a `endGame()` si la nueva pieza colisiona.
 - `clearLines()` es quien actualiza puntuación, nivel y `dropInterval` (`max(100, 1000 - (level-1)*90)`); hard drop suma 2 pts/celda y soft drop 1 pt/fila.
+- Menú de pausa (`#pause-menu`, P/Escape): `startLevel` (1–10) lo aplica `init()` a `level`/`dropInterval` y `clearLines()` usa `max(startLevel, floor(lines/10)+1)`. Con la pausa el `keydown` ignora todo salvo P/Esc; al reanudar `blockedKeys` ignora las teclas aún pulsadas hasta su `keyup`. `#overlay` queda solo para game over.
 - Pausa y game over cancelan el rAF (`cancelAnimationFrame(animId)`); reanudar reinicia `lastTime` y vuelve a llamar a `loop`.
 - Rotación: `rotateCW` + wall kicks simples en `tryRotate` (desplazamientos horizontales `[0,-1,1,-2,2]`, no SRS).
 
