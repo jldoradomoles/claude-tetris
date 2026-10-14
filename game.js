@@ -446,7 +446,11 @@ document.addEventListener('keydown', e => {
   updateHUD();
 });
 
-restartBtn.addEventListener('click', init);
+restartBtn.addEventListener('click', () => {
+  restartBtn.blur();
+  if (pendingEntry) saveEntry('Anónimo'); // no perder un récord sin guardar
+  init();
+});
 
 // ---- Récords locales ----
 const RECORDS_KEY = 'tetris-records';
@@ -465,7 +469,9 @@ function loadRecords() {
     const data = JSON.parse(localStorage.getItem(RECORDS_KEY));
     if (!data || !Array.isArray(data.scores)) return empty;
     return {
-      scores: data.scores.slice(0, MAX_RECORDS),
+      scores: data.scores
+        .filter(r => r && typeof r === 'object' && isFinite(+r.score))
+        .slice(0, MAX_RECORDS),
       bestCombo: +data.bestCombo || 0,
       maxLines: +data.maxLines || 0,
     };
@@ -536,23 +542,27 @@ function showGameOverRecords() {
     pendingEntry = { score, lines, level };
     nameForm.classList.remove('hidden');
     nameInput.value = '';
-    nameInput.focus();
+    setTimeout(() => nameInput.focus(), 400); // evita que un Espacio mantenido caiga en el campo
   } else {
     pendingEntry = null;
     nameForm.classList.add('hidden');
   }
 }
 
-nameForm.addEventListener('submit', e => {
-  e.preventDefault();
-  if (!pendingEntry) return;
+function saveEntry(name) {
   const rec = loadRecords();
   const idx = insertIndex(rec, pendingEntry.score);
-  const name = nameInput.value.trim().slice(0, 12) || 'Anónimo';
   rec.scores.splice(idx, 0, { name, ...pendingEntry, date: new Date().toISOString() });
   rec.scores = rec.scores.slice(0, MAX_RECORDS);
   saveRecords(rec);
   pendingEntry = null;
+  return idx;
+}
+
+nameForm.addEventListener('submit', e => {
+  e.preventDefault();
+  if (!pendingEntry) return;
+  const idx = saveEntry(nameInput.value.trim().slice(0, 12) || 'Anónimo');
   nameForm.classList.add('hidden');
   nameInput.blur();
   renderAllRecords(idx);
